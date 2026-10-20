@@ -1,5 +1,16 @@
 ![SOAPGemma Banner](DOCS/img.png)
 
+## About this repository and contributions
+
+This is a **collaborative project and a fork of [shalindasilva1/SOAPGemma](https://github.com/shalindasilva1/SOAPGemma)**. The project's core training, data preparation, and documentation are shared work; please do not interpret the entire codebase as my individual implementation.
+
+My commits in the project include:
+
+- Preparing validation/test examples and updating inference code, including a batch-generation helper ([commit](https://github.com/khalosh74/SOAPGemma/commit/a5e538df)).
+- Working on the prediction workflow and a notebook evaluating SOAP-note outputs using ROUGE and related metrics ([commit](https://github.com/khalosh74/SOAPGemma/commit/0b385d5a)).
+- Experimenting with a MedGemma-based adapter and related artifacts ([commit](https://github.com/khalosh74/SOAPGemma/commit/3d9f2dab)). This is an experiment, not evidence of clinical validation.
+
+**Scope:** This is an NLP research/demo project using synthetic medical dialogues, not a medical device or a clinically validated documentation system.
 ## Table of Contents
 1.  [Introduction](#introduction)
 2.  [What is a SOAP Note?](#what-is-a-soap-note)
@@ -56,27 +67,26 @@ The OMI dataset used in this project consists of 10,000 synthetic dialogues betw
 * **Model Evaluation:** Scripts and notebooks for evaluating the generated SOAP notes using metrics like ROUGE, BERTScore, and BLEU.
 
 ## Setup and Installation
-1.  **Clone the repository:**
-    ```bash
-    git clone <repository_url>
-    cd medical-soap-note-generator
-    ```
-2.  **Create a virtual environment (recommended):**
-    ```bash
-    python -m venv env
-    source env/bin/activate  # On Windows: env\Scripts\activate
-    ```
-3.  **Install dependencies:**
-    The `requirements.txt` file lists the necessary Python packages.
-    ```bash
-    pip install -r requirements.txt
-    # Ensure you have PyTorch installed with CUDA support if you have a GPU.
-    # Example for CUDA 12.1:
-    # pip install torch torchvision torchaudio --index-url [https://download.pytorch.org/whl/cu121](https://download.pytorch.org/whl/cu121)
-    # pip install bitsandbytes datasets peft transformers trl rouge_score bert_score nltk
-    ```
-    (Note: The `requirements.txt` file in the provided project is currently empty. Users should populate it with necessary packages like `torch`, `transformers`, `datasets`, `peft`, `bitsandbytes`, `trl`, `pandas`, `rouge_score`, `bert_score`, `nltk` etc.)
 
+From the repository root:
+
+```bash
+git clone https://github.com/khalosh74/SOAPGemma.git
+cd SOAPGemma
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+python -m pip install -r requirements.txt
+```
+
+The repository contains dependency declarations, but **the setup has not been verified as a clean, one-command installation**. The evaluation notebooks may additionally require `rouge-score` and `bert-score`; training/inference may require a suitable GPU and access to the Hugging Face base model. Check the available hardware and model terms before running them.
+
+To try inference with a local adapter and the provided example dialogue (from the repository root):
+
+```bash
+python src/model.py --dialogue-file src/test_data/d1.txt --adapter_path models/SOAPgemma_v1
+```
+
+This example uses the TxGemma base model selected by the script. See [src/model.py](src/model.py) for model and device options. If required model weights or compute resources are unavailable, the example will not run.
 ## Usage
 
 ### Data Processing
@@ -91,7 +101,7 @@ The OMI dataset used in this project consists of 10,000 synthetic dialogues betw
     * Configuring LoRA.
     * Preparing the dataset and formatting it for training.
     * Initializing and running the `SFTTrainer` from the `trl` library.
-    * Saving the fine-tuned LoRA adapter and tokenizer to `models_checkpoint/SOAPgemma_v1/`.
+    * Saving the fine-tuned LoRA adapter and tokenizer to `models/SOAPgemma_v1/`.
 
 ### Inference
 There are multiple ways to perform inference:
@@ -103,7 +113,7 @@ There are multiple ways to perform inference:
     ```
     You can also provide arguments:
     ```bash
-    python src/model.py --dialogue-file src/test_data/d1.txt --adapter_path models_checkpoint/SOAPgemma_v1
+    python src/model.py --dialogue-file src/test_data/d1.txt --adapter_path models/SOAPgemma_v1
     ```
     The script includes a spinner animation during generation.
 
@@ -135,9 +145,9 @@ There are multiple ways to perform inference:
 * `src/model.py`: Defines the model loading, interactive inference logic with spinner animation.
 * `src/inference.py`: Contains the core `generate_soap_note` function for single dialogue inference.
 * `src/inference_batch.py`: Contains the `generate_batch` function for processing multiple dialogues.
-* `src/train.py`: (If created) Would contain the script to run the training process from the command line.
-* `src/evaluate.py`: (If created) Would contain the script for model evaluation from the command line.
-* `src/utils.py`: (If created) Would contain utility functions used across the project.
+* `src/train.py`: Placeholder in the current repository; model training is demonstrated primarily in the notebook.
+* `src/evaluate.py`: Present in the source tree; see the evaluation notebook for the documented workflow.
+* `src/utils.py`: Utility module included in the source tree.
 
 ## Evaluation Metrics
 The model's performance is evaluated using:
@@ -148,7 +158,7 @@ The model's performance is evaluated using:
 * **BERTScore:** Leverages pre-trained BERT embeddings to assess semantic similarity between the generated and reference texts.
 * **BLEU (Bilingual Evaluation Understudy):** Measures precision of n-grams in the generated text compared to reference texts.
 
-The fine-tuned TxGemma model (SOAPGemma) generates SOAP notes that are semantically accurate (high BERTScore) but may not always perfectly match the original phrasing (indicated by ROUGE and BLEU scores). For medical summarization, semantic accuracy is often prioritized.
+These metrics compare generated notes against reference text, but they do not by themselves establish clinical factual accuracy or safety. No verified clinical-performance claim is made here.
 
 ## License
 MIT License
